@@ -81,6 +81,9 @@ type Config struct {
 	Metric metric.MetricConfig `yaml:"metric,omitempty"`
 
 	NodeStats NodeStatsConfig `yaml:"node_stats,omitempty"`
+
+	// Mesh configuration for multi-node room support
+	Mesh MeshConfig `yaml:"mesh,omitempty"`
 }
 
 type RTCConfig struct {
@@ -400,6 +403,7 @@ var DefaultConfig = Config{
 	Metric:    metric.DefaultMetricConfig,
 	WebHook:   webhook.DefaultWebHookConfig,
 	NodeStats: DefaultNodeStatsConfig,
+	Mesh:      MeshConfig{},
 }
 
 func NewConfig(confString string, strictMode bool, c *cli.Context, baseFlags []cli.Flag) (*Config, error) {
@@ -779,4 +783,40 @@ func SetLogger(l logger.Logger) {
 
 func InitLoggerFromConfig(config *LoggingConfig) {
 	logger.InitFromConfig(&config.Config, "livekit")
+}
+
+// MeshConfig enables multi-node mesh networking for rooms
+type MeshConfig struct {
+	Enabled    bool   `yaml:"enabled"`
+	NodeID     string `yaml:"node_id"`     // Unique identifier for this node
+	NodeRegion string `yaml:"node_region"` // Region this node is in
+
+	// Message bus configuration for state synchronization
+	MessageBus MessageBusConfig `yaml:"message_bus"`
+
+	// Media relay configuration
+	MediaRelay MediaRelayConfig `yaml:"media_relay"`
+
+	// Discovery configuration
+	Discovery DiscoveryConfig `yaml:"discovery"`
+}
+
+type MessageBusConfig struct {
+	Type     string `yaml:"type"`     // "redis" or "nats"
+	Address  string `yaml:"address"`  // Connection string
+	Password string `yaml:"password"` // Authentication
+	DB       int    `yaml:"db"`       // Redis DB number
+}
+
+type MediaRelayConfig struct {
+	ListenPort      int    `yaml:"listen_port"`       // Port for incoming relay connections
+	MaxRelayBitrate int64  `yaml:"max_relay_bitrate"` // Maximum bitrate per relay
+	RelayBufferSize int    `yaml:"relay_buffer_size"` // Buffer size for relay packets
+	EncryptionKey   string `yaml:"encryption_key"`    // Key for relay encryption
+}
+
+type DiscoveryConfig struct {
+	HeartbeatInterval time.Duration `yaml:"heartbeat_interval"` // How often to announce presence
+	NodeTimeout       time.Duration `yaml:"node_timeout"`       // When to consider a node dead
+	LatencyThreshold  time.Duration `yaml:"latency_threshold"`  // Max latency for relay routing
 }
