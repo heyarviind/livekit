@@ -10,24 +10,14 @@ import (
 	"github.com/livekit/psrpc"
 )
 
-// RTPMessage is a minimal wrapper for forwarding RTP packets via psrpc.
-type RTPMessage struct {
-	Packet []byte
-}
-
-// RTCPMessage wraps a batch of RTCP packets for forwarding.
-type RTCPMessage struct {
-	Packets [][]byte
-}
-
 // Relay forwards media to a remote SFU node using psrpc streams.
 type Relay struct {
-	stream psrpc.Stream[*RTPMessage, *RTCPMessage]
+	stream psrpc.Stream[*MediaMessage, *MediaMessage]
 	logger logger.Logger
 	mu     sync.Mutex
 }
 
-func NewRelay(stream psrpc.Stream[*RTPMessage, *RTCPMessage], l logger.Logger) *Relay {
+func NewRelay(stream psrpc.Stream[*MediaMessage, *MediaMessage], l logger.Logger) *Relay {
 	return &Relay{stream: stream, logger: l}
 }
 
@@ -40,7 +30,7 @@ func (r *Relay) ForwardRTP(pkt *rtp.Packet) error {
 	if err != nil {
 		return err
 	}
-	return r.stream.Send(&RTPMessage{Packet: b})
+	return r.stream.Send(&MediaMessage{Packet: b})
 }
 
 // ForwardRTCP forwards RTCP packets to the remote node.
@@ -56,7 +46,7 @@ func (r *Relay) ForwardRTCP(pkts []rtcp.Packet) error {
 		}
 		data = append(data, b)
 	}
-	return r.stream.Send(&RTCPMessage{Packets: data})
+	return r.stream.Send(&MediaMessage{Packets: data})
 }
 
 // Close terminates the underlying psrpc stream.
