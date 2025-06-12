@@ -12,7 +12,7 @@ import (
 
 // Receiver consumes RTP/RTCP from a remote node via a psrpc stream.
 type Receiver struct {
-	stream psrpc.Stream[*RTPMessage, *RTCPMessage]
+	stream psrpc.Stream[*RelayMessage, *RelayMessage]
 	logger logger.Logger
 	mu     sync.Mutex
 
@@ -20,7 +20,7 @@ type Receiver struct {
 	OnRTCP func([]rtcp.Packet)
 }
 
-func NewReceiver(stream psrpc.Stream[*RTPMessage, *RTCPMessage], l logger.Logger) *Receiver {
+func NewReceiver(stream psrpc.Stream[*RelayMessage, *RelayMessage], l logger.Logger) *Receiver {
 	r := &Receiver{stream: stream, logger: l}
 	go r.read()
 	return r
@@ -28,7 +28,7 @@ func NewReceiver(stream psrpc.Stream[*RTPMessage, *RTCPMessage], l logger.Logger
 
 func (r *Receiver) read() {
 	for msg := range r.stream.Channel() {
-		if msg.Packets != nil { // RTCP
+		if len(msg.Packets) > 0 {
 			pkts := make([]rtcp.Packet, 0, len(msg.Packets))
 			for _, b := range msg.Packets {
 				ps, err := rtcp.Unmarshal(b)
@@ -41,7 +41,7 @@ func (r *Receiver) read() {
 			}
 			continue
 		}
-		if msg.Packet != nil {
+		if len(msg.Packet) > 0 {
 			pkt := &rtp.Packet{}
 			if err := pkt.Unmarshal(msg.Packet); err == nil {
 				if r.OnRTP != nil {
