@@ -71,6 +71,7 @@ type subscription struct {
 func NewRedisMessageBus(nodeID string, cfg config.MessageBusConfig, logger logger.Logger) (*RedisMessageBus, error) {
 	opts := &redis.UniversalOptions{
 		Addrs:    []string{cfg.Address},
+		Username: cfg.Username,
 		Password: cfg.Password,
 		DB:       cfg.DB,
 	}

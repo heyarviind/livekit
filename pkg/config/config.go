@@ -804,7 +804,8 @@ type MeshConfig struct {
 type MessageBusConfig struct {
 	Type     string `yaml:"type"`     // "redis" or "nats"
 	Address  string `yaml:"address"`  // Connection string
-	Password string `yaml:"password"` // Authentication
+	Username string `yaml:"username"` // Username for authentication
+	Password string `yaml:"password"` // Password for authentication
 	DB       int    `yaml:"db"`       // Redis DB number
 }
 
@@ -819,4 +820,6 @@ type DiscoveryConfig struct {
 	HeartbeatInterval time.Duration `yaml:"heartbeat_interval"` // How often to announce presence
 	NodeTimeout       time.Duration `yaml:"node_timeout"`       // When to consider a node dead
 	LatencyThreshold  time.Duration `yaml:"latency_threshold"`  // Max latency for relay routing
+	PreferSameRegion  bool          `yaml:"prefer_same_region"` // Prefer nodes in same region
+	RegionFallback    bool          `yaml:"region_fallback"`    // Allow cross-region fallback
 }
