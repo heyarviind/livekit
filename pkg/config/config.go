@@ -66,6 +66,7 @@ type Config struct {
 	SIP            SIPConfig                `yaml:"sip,omitempty"`
 	WebHook        webhook.WebHookConfig    `yaml:"webhook,omitempty"`
 	NodeSelector   NodeSelectorConfig       `yaml:"node_selector,omitempty"`
+	Auth           AuthConfig               `yaml:"auth,omitempty"`
 	KeyFile        string                   `yaml:"key_file,omitempty"`
 	Keys           map[string]string        `yaml:"keys,omitempty"`
 	Region         string                   `yaml:"region,omitempty"`
@@ -552,6 +553,14 @@ func (conf *Config) ToCLIFlagNames(existingFlags []cli.Flag) map[string]reflect.
 }
 
 func (conf *Config) ValidateKeys() error {
+	// If shared secret is configured, use that instead of multiple keys
+	if conf.Auth.SharedSecret != "" {
+		if !conf.Development && len(conf.Auth.SharedSecret) < 32 {
+			logger.Errorw("shared secret is too short, should be at least 32 characters for security", nil)
+		}
+		return nil
+	}
+
 	// prefer keyfile if set
 	if conf.KeyFile != "" {
 		var otherFilter os.FileMode = 0o007
@@ -822,4 +831,9 @@ type DiscoveryConfig struct {
 	LatencyThreshold  time.Duration `yaml:"latency_threshold"`  // Max latency for relay routing
 	PreferSameRegion  bool          `yaml:"prefer_same_region"` // Prefer nodes in same region
 	RegionFallback    bool          `yaml:"region_fallback"`    // Allow cross-region fallback
+}
+
+type AuthConfig struct {
+	// Shared secret for JWT authentication - when set, this will be used instead of multiple keys
+	SharedSecret string `yaml:"shared_secret,omitempty"`
 }

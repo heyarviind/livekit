@@ -196,6 +196,10 @@ func getNodeID(currentNode routing.LocalNode) livekit.NodeID {
 
 func createKeyProvider(conf *config.Config) (auth.KeyProvider, error) {
 
+	if conf.Auth.SharedSecret != "" {
+		return NewSharedSecretKeyProvider(conf.Auth.SharedSecret), nil
+	}
+
 	if conf.KeyFile != "" {
 		var otherFilter os.FileMode = 0007
 		if st, err := os.Stat(conf.KeyFile); err != nil {
@@ -217,7 +221,7 @@ func createKeyProvider(conf *config.Config) (auth.KeyProvider, error) {
 	}
 
 	if len(conf.Keys) == 0 {
-		return nil, errors.New("one of key-file or keys must be provided in order to support a secure installation")
+		return nil, errors.New("one of shared secret, key-file or keys must be provided in order to support a secure installation")
 	}
 
 	return auth.NewFileBasedKeyProviderFromMap(conf.Keys), nil

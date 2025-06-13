@@ -236,3 +236,26 @@ func EnsureDestRoomPermission(ctx context.Context, source livekit.RoomName, dest
 func twirpAuthError(err error) error {
 	return twirp.NewError(twirp.Unauthenticated, err.Error())
 }
+
+// SharedSecretKeyProvider implements auth.KeyProvider using a single shared secret
+type SharedSecretKeyProvider struct {
+	secret string
+}
+
+// NewSharedSecretKeyProvider creates a new SharedSecretKeyProvider with the given secret
+func NewSharedSecretKeyProvider(secret string) *SharedSecretKeyProvider {
+	return &SharedSecretKeyProvider{
+		secret: secret,
+	}
+}
+
+// GetSecret returns the shared secret for any key ID
+func (p *SharedSecretKeyProvider) GetSecret(keyID string) string {
+	// Return the same secret for any key ID since we're using a shared secret approach
+	return p.secret
+}
+
+// NumKeys returns 1 since we have a single shared secret
+func (p *SharedSecretKeyProvider) NumKeys() int {
+	return 1
+}

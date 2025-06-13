@@ -144,12 +144,19 @@ rtc:
 # when enabled, LiveKit will expose prometheus metrics on :6789/metrics
 # prometheus_port: 6789
 
+# Authentication configuration
+# Option 1: Use a single shared secret (recommended for most use cases)
+# When using shared secret, your backend signs JWTs with this secret, and LiveKit validates them
+auth:
+  shared_secret: "your-shared-secret-at-least-32-characters-long"
+# Option 2: Traditional multi-key approach (for backward compatibility)
 # API key / secret pairs.
 # Keys are used for JWT authentication, server APIs would require a keypair in order to generate access tokens
 # and make calls to the server
-keys:
-  key1: secret1
-  key2: secret2
+# Comment out the keys section if using shared_secret above
+# keys:
+#   key1: secret1
+#   key2: secret2
 # Logging config
 # logging:
 #   # log level, valid values: debug, info, warn, error

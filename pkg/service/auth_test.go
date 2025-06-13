@@ -72,3 +72,44 @@ func TestAuthMiddleware(t *testing.T) {
 	require.Nil(t, grants)
 	require.Equal(t, http.StatusUnauthorized, w.Code)
 }
+
+func TestSharedSecretKeyProvider(t *testing.T) {
+	secret := "shared-secret-at-least-32-characters-long"
+	provider := service.NewSharedSecretKeyProvider(secret)
+
+	// Test that GetSecret returns the same secret for any key ID
+	require.Equal(t, secret, provider.GetSecret("any-key-id"))
+	require.Equal(t, secret, provider.GetSecret("another-key-id"))
+	require.Equal(t, secret, provider.GetSecret(""))
+
+	// Test NumKeys
+	require.Equal(t, 1, provider.NumKeys())
+}
+
+func TestSharedSecretAuthMiddleware(t *testing.T) {
+	secret := "shared-secret-at-least-32-characters-long"
+	provider := service.NewSharedSecretKeyProvider(secret)
+
+	m := service.NewAPIKeyAuthMiddleware(provider)
+	var grants *auth.ClaimGrants
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		grants = service.GetGrants(r.Context())
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// Test valid token with shared secret
+	orig := &auth.VideoGrant{Room: "test-room", RoomJoin: true}
+	at := auth.NewAccessToken("any-api-key", secret).
+		AddGrant(orig)
+	token, err := at.ToJWT()
+	require.NoError(t, err)
+
+	r := &http.Request{Header: http.Header{}}
+	w := httptest.NewRecorder()
+	service.SetAuthorizationToken(r, token)
+	m.ServeHTTP(w, r, handler)
+
+	require.NotNil(t, grants)
+	require.Equal(t, orig, grants.Video)
+	require.Equal(t, http.StatusOK, w.Code)
+}
