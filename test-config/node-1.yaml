@@ -1,0 +1,38 @@
+port: 7880
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50100
+  use_external_ip: false
+
+redis:
+  address: localhost:6379
+  db: 0
+
+# Mesh configuration for Node 1
+mesh:
+  enabled: true
+  node_id: "node-1"
+  node_region: "local"
+
+  message_bus:
+    type: "redis"
+    address: "localhost:6379"
+    db: 1
+
+  media_relay:
+    listen_port: 7882
+    max_relay_bitrate: 10000000
+    relay_buffer_size: 500
+    encryption_key: "local-test-key"
+
+  discovery:
+    heartbeat_interval: "10s"
+    node_timeout: "30s"
+    latency_threshold: "50ms"
+
+keys:
+  devkey: B2er8qYabAI3gxSWjFxMF3KC507zKX2K
+
+log_level: debug
+development: true

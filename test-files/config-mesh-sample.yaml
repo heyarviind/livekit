@@ -1,0 +1,72 @@
+# LiveKit Mesh Configuration Sample
+# This configuration enables mesh networking to allow participants
+# connected to different servers to communicate in the same room
+
+port: 7880
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 60000
+  use_external_ip: true
+
+redis:
+  address: localhost:6379
+  username: ""
+  password: ""
+  db: 0
+
+# Mesh networking configuration
+mesh:
+  enabled: true
+  node_id: "node-1" # Unique identifier for this node
+  node_region: "us-west" # Region this node is in
+
+  # Message bus configuration for state synchronization
+  message_bus:
+    type: "redis"
+    address: "localhost:6379"
+    password: ""
+    db: 1 # Use different DB for mesh messages
+
+  # Media relay configuration
+  media_relay:
+    listen_port: 7882 # Port for incoming relay connections
+    max_relay_bitrate: 10000000 # 10 Mbps max per relay
+    relay_buffer_size: 500 # Buffer size for relay packets
+    encryption_key: "your-relay-encryption-key-here"
+
+  # Discovery configuration
+  discovery:
+    heartbeat_interval: "30s" # How often to announce presence
+    node_timeout: "90s" # When to consider a node dead
+    latency_threshold: "100ms" # Max latency for relay routing
+
+keys:
+  # Your API key and secret
+  API_KEY: your_api_key_here
+  API_SECRET: your_secret_here
+
+# Room configuration
+room:
+  enabled_codecs:
+    - mime: audio/opus
+    - mime: video/VP8
+    - mime: video/H264
+      # Additional H264 configuration
+      fmtp_line: "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f"
+    - mime: video/VP9
+
+# Webhook configuration (optional)
+webhook:
+  urls:
+    - http://your-webhook-server.com/webhook
+  api_key: your_webhook_api_key
+
+# Logging
+log_level: info
+log_config:
+  json: false
+  stdout: true
+
+# Development settings
+development: true
